@@ -1,0 +1,76 @@
+---
+title: "tidytuesday week 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(openxlsx)
+library(skimr)
+library(scales)
+
+```
+
+## Quick stats
+
+
+
+```{r data, results='asis'}
+df_nfl_raw <- readxl::read_xlsx(paste0(here::here(),"/data/tidy_tuesday_week2.xlsx"))
+
+df_nfl_raw %>% skim %>% skimr::kable()
+
+```
+
+## Data wrangling
+
+```{r preprocessing}
+
+# defining offensive posiotons
+offense <- c("Quarterback", 
+             "Running Back",
+             "Offensive Lineman",
+             "Tight End",
+             "Wide Receiver")
+
+# transformint data 
+# filter out NA's
+# allocating offense and defense to positoion
+df_nfl <- df_nfl_raw %>% 
+  gather(Cornerback:`Wide Receiver`, key = "Position", value = "salary") %>% 
+  filter(!is.na(Position)) %>% 
+  mutate(allocation = ifelse(Position %in% offense, "offense", "defense"))
+
+
+```
+
+## Ploting
+
+```{r}
+
+# function for formating labels of y axis
+m_dollar <- function(x){
+  dollar_format(suffix = "m")(x/1000000)
+}
+
+# select top 16 player and creating plot
+df_nfl %>% 
+  group_by(year, Position) %>% 
+  top_n(16, salary) %>% 
+  ggplot(aes(x = year, y = salary)) +
+  geom_jitter(alpha = 0.3) +
+  scale_y_continuous(labels = m_dollar) +
+  scale_x_continuous(breaks = seq(2011, 2018, 3)) +
+  geom_smooth(se = FALSE, color = "red") +
+  facet_wrap(allocation ~ Position, ncol = 5) +
+  theme_bw() +
+  labs(title = "NFL salaries of the top 16 players by position",
+       caption = "@T_Bobi")
+
+# saving last plot to repository
+ggsave("../graphs/20180410_tidyTuseday_week_2.png")
+
+
+```
+
