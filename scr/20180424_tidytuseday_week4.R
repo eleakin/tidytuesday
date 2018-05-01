@@ -24,7 +24,7 @@ k_dollar <- function(x){
   dollar_format(suffix = "k")(x/1000)
 }
 
-df_au_sal %>% 
+gg <- df_au_sal %>% 
   top_n(15,gap) %>% 
   arrange(gap) %>%
   mutate(occupation = factor(occupation, levels = occupation)) %>% 
@@ -39,6 +39,10 @@ df_au_sal %>%
         panel.grid.major.y=element_blank(),
         axis.ticks=element_blank())+
   labs(x = "", y = "",
-       title = "Occupations with the highest income gap in Australia ",
+       title = "Occupations with the highest gender income gap in Australia",
        caption = "@T_Bobin")
 
+gg
+
+# save plot
+ggsave("../graphs/20180426_tidyTuseday_week_4.png", gg, units = "in", dpi = 300)
